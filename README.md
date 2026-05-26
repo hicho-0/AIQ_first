@@ -164,14 +164,10 @@ The `iaq_ontology_v2.ttl` file contains:
 
 For improvements or bug reports, please review the data anomalies section and retrain models with cleaned data as needed.
 
-## 📄 License
-
-[Specify your project license]
 
 ## 📧 Contact
 
-[Add your contact information if applicable]
-
+hichembrahimi0@gmail.com
 ---
 
 **Last Updated**: May 2026
