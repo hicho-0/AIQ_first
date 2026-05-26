@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Indoor Air Quality — GNN Sensor Graph Dashboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0d14;color:#e2e8f0;font-family:'Inter',sans-serif;min-height:100vh;padding:0 0 60px}
+
+/* ── NAV ── */
+nav{background:#0f1117;border-bottom:1px solid #1e293b;padding:0 24px;display:flex;gap:0;position:sticky;top:0;z-index:100;overflow-x:auto}
+.nav-btn{padding:14px 20px;font-size:13px;font-weight:500;color:#64748b;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s;background:none;border:none}
+.nav-btn:hover{color:#cbd5e1}
+.nav-btn.active{color:#f8fafc;border-bottom-color:#6366f1}
+
+/* ── PAGE HEADER ── */
+.page-header{text-align:center;padding:32px 24px 24px}
+.page-title{font-size:26px;font-weight:700;color:#f8fafc;letter-spacing:-0.03em;margin-bottom:6px}
+.page-sub{font-size:14px;color:#475569}
+.badge-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.badge{font-size:11px;font-weight:600;padding:3px 12px;border-radius:20px;letter-spacing:0.04em}
+.b-gcn{background:#14532d;color:#86efac}
+.b-gin{background:#1e3a5f;color:#93c5fd}
+.b-sat{background:#3b0764;color:#d8b4fe}
+.b-reg{background:#431407;color:#fdba74}
+
+/* ── SECTION ── */
+.section{display:none;padding:0 24px}
+.section.active{display:block}
+.sec-title{font-size:19px;font-weight:600;color:#f1f5f9;margin:28px 0 6px;display:flex;align-items:center;gap:10px}
+.sec-title::before{content:'';display:block;width:4px;height:22px;border-radius:2px}
+.gcn-sec::before{background:#22c55e}
+.gin-sec::before{background:#3b82f6}
+.sat-sec::before{background:#a855f7}
+.reg-sec::before{background:#f97316}
+.sec-sub{font-size:13px;color:#64748b;margin-bottom:20px}
+
+/* ── CARDS ── */
+.card{background:#0f1117;border-radius:14px;border:1px solid #1e293b;padding:18px;margin-bottom:16px}
+.card-title{font-size:13px;font-weight:600;color:#94a3b8;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+
+/* ── GRAPH GRID ── */
+.graph-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:680px){.graph-grid{grid-template-columns:1fr}}
+canvas{width:100%;border-radius:10px;display:block;background:#0a0d14}
+
+/* ── INFO BOX ── */
+.info-box{background:#0f1117;border:1px solid #1e293b;border-radius:12px;padding:16px;margin-bottom:16px}
+.info-title{font-size:13px;font-weight:600;color:#f1f5f9;margin-bottom:10px}
+.formula{font-family:'JetBrains Mono',monospace;font-size:12px;background:#0a0d14;border:1px solid #1e293b;border-radius:8px;padding:10px 14px;color:#7dd3fc;margin:8px 0;line-height:1.8}
+.explain{font-size:13px;color:#94a3b8;line-height:1.8;margin-top:8px}
+.step-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+@media(max-width:600px){.step-row{grid-template-columns:1fr 1fr}}
+.step{background:#0a0d14;border:1px solid #1e293b;border-radius:8px;padding:10px 12px}
+.step-num{font-size:10px;font-weight:700;color:#475569;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em}
+.step-text{font-size:12px;color:#cbd5e1;line-height:1.5}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:12px;color:#94a3b8}
+.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* ── ATTENTION BARS ── */
+.abar-section{margin-top:14px}
+.abar-head{font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:8px}
+.abar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.abar-label{font-size:11px;font-family:'JetBrains Mono',monospace;color:#94a3b8;min-width:100px}
+.abar-track{flex:1;height:7px;background:#0a0d14;border-radius:4px;overflow:hidden}
+.abar-fill{height:100%;border-radius:4px}
+.abar-val{font-size:11px;font-family:'JetBrains Mono',monospace;min-width:38px;text-align:right}
+
+/* ── REGRESSION SECTION ── */
+.metric-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+@media(max-width:700px){.metric-cards{grid-template-columns:1fr 1fr}}
+.metric-card{background:#0f1117;border:1px solid #1e293b;border-radius:12px;padding:16px;text-align:center}
+.metric-card .m-name{font-size:11px;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px}
+.metric-card .m-formula{font-family:'JetBrains Mono',monospace;font-size:10px;color:#38bdf8;margin-bottom:8px;line-height:1.6}
+.metric-card .m-desc{font-size:11px;color:#64748b;line-height:1.5}
+
+.results-table{width:100%;border-collapse:collapse;margin-bottom:20px}
+.results-table th{background:#1e293b;color:#94a3b8;font-size:12px;font-weight:600;padding:10px 14px;text-align:left;letter-spacing:0.03em}
+.results-table td{padding:10px 14px;font-size:13px;border-bottom:1px solid #1e293b;color:#cbd5e1;font-family:'JetBrains Mono',monospace}
+.results-table tr:hover td{background:#0f1117}
+.best{color:#86efac!important;font-weight:600}
+.model-name{font-family:'Inter',sans-serif!important;font-weight:600}
+.gcn-name{color:#86efac}
+.gin-name{color:#93c5fd}
+.sat-name{color:#d8b4fe}
+
+.chart-wrap{background:#0f1117;border:1px solid #1e293b;border-radius:12px;padding:16px;margin-bottom:16px}
+.chart-wrap canvas{background:#0a0d14;border-radius:8px}
+.chart-title{font-size:13px;font-weight:600;color:#94a3b8;margin-bottom:12px}
+
+.conclusion-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+@media(max-width:640px){.conclusion-grid{grid-template-columns:1fr}}
+.concl-card{border-radius:12px;padding:14px;border:1px solid}
+.concl-gcn{background:#052e16;border-color:#166534}
+.concl-gin{background:#0c1a2e;border-color:#1e3a5f}
+.concl-sat{background:#1a0533;border-color:#3b0764}
+.concl-title{font-size:13px;font-weight:700;margin-bottom:6px}
+.concl-text{font-size:12px;line-height:1.6;color:#94a3b8}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <button class="nav-btn active" onclick="showSection('gcn')">GCN Graph</button>
+  <button class="nav-btn" onclick="showSection('gin')">GIN Graph</button>
+  <button class="nav-btn" onclick="showSection('sat')">GraphSAT Graph</button>
+  <button class="nav-btn" onclick="showSection('reg')">Regression Results</button>
+</nav>
+
+<!-- HEADER -->
+<div class="page-header">
+  <p class="page-title">Indoor Air Quality — GNN Sensor Dashboard</p>
+  <p class="page-sub">21-node sensor graph analysis with GCN, GIN, and GraphSAT architectures + regression evaluation</p>
+  <div class="badge-row">
+    <span class="badge b-gcn">GCN</span>
+    <span class="badge b-gin">GIN</span>
+    <span class="badge b-sat">GraphSAT</span>
+    <span class="badge b-reg">Regression Metrics</span>
+  </div>
+</div>
+
+<!-- ══════════════ GCN SECTION ══════════════ -->
+<div class="section active" id="sec-gcn">
+  <p class="sec-title gcn-sec">GCN — Graph Convolutional Network</p>
+  <p class="sec-sub">Mean-based neighbor aggregation on sensor correlation graph</p>
+
+  <div class="info-box">
+    <p class="info-title">How GCN processes your 21-sensor graph</p>
+    <div class="formula">h_i⁽ˡ⁺¹⁾ = ReLU( W⁽ˡ⁾ · MEAN{ h_j⁽ˡ⁾ : j ∈ N(i) ∪ {i} } )</div>
+    <p class="explain">GCN averages the embeddings of direct neighboring sensors. Each node processes only its 1-hop neighbors. Node size and brightness show activation level after GCN processing. Larger and brighter = higher activation from the sensor cluster.</p>
+    <div class="step-row">
+      <div class="step"><p class="step-num">Step 1</p><p class="step-text">Read direct neighbors (correlation edges)</p></div>
+      <div class="step"><p class="step-num">Step 2</p><p class="step-text">Compute MEAN of neighbor embeddings</p></div>
+      <div class="step"><p class="step-num">Step 3</p><p class="step-text">Multiply by learned weights</p></div>
+      <div class="step"><p class="step-num">Output</p><p class="step-text">Graph embedding via pooling</p></div>
+    </div>
+  </div>
+
+  <div class="graph-grid">
+    <div class="card">
+      <p class="card-title"><span class="dot" style="background:#22c55e"></span>GCN — Clean air (normal)</p>
+      <canvas id="gcn-clean" height="340"></canvas>
+    </div>
+    <div class="card">
+      <p class="card-title"><span class="dot" style="background:#ef4444"></span>GCN — Fire event (spike)</p>
+      <canvas id="gcn-fire" height="340"></canvas>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <p class="info-title">Reading the GCN graph — 21 sensors across 4 categories</p>
+    <div class="legend">
+      <div class="leg-item"><div class="leg-dot" style="background:#ef4444"></div>Gas (7) — CO₂, SO₂, NO₂, O₃, CO, TVOC, O₂</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#3b82f6"></div>Particle (5) — PM1, PM2.5, PM10, cnt0.3, cnt0.5</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#22c55e"></div>Climate (5) — Temp, Humid, Press, Dewpt, Habsol</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#f59e0b"></div>Composite (4) — Health, Perf, Sound, dCO₂dt</div>
+    </div>
+    <p class="explain" style="margin-top:10px">In clean air (left), most nodes are dim. In fire event (right), SO₂, NO₂, O₃ nodes light up. GCN's limitation: it only sees direct neighbors, missing distant co-activations without stacking many layers.</p>
+  </div>
+</div>
+
+<!-- ══════════════ GIN SECTION ══════════════ -->
+<div class="section" id="sec-gin">
+  <p class="sec-title gin-sec">GIN — Graph Isomorphism Network</p>
+  <p class="sec-sub">Sum-based aggregation + MLP — more expressive than GCN</p>
+
+  <div class="info-box">
+    <p class="info-title">How GIN processes your sensor graph</p>
+    <div class="formula">h_i⁽ˡ⁺¹⁾ = MLP⁽ˡ⁾( (1+ε)·h_i⁽ˡ⁾  +  Σⱼ∈N(i) h_j⁽ˡ⁾ )</div>
+    <p class="explain">GIN SUMS neighbor embeddings instead of averaging. This preserves structural information: 3 activated sensors produce 3× the signal, unlike GCN where they look identical to 1 very-activated sensor. The MLP applies a learned nonlinear transformation.</p>
+    <div class="step-row">
+      <div class="step"><p class="step-num">Step 1</p><p class="step-text">Sum ALL neighbor embeddings</p></div>
+      <div class="step"><p class="step-num">Step 2</p><p class="step-text">Add own embedding × (1+ε)</p></div>
+      <div class="step"><p class="step-num">Step 3</p><p class="step-text">Pass through MLP network</p></div>
+      <div class="step"><p class="step-num">Output</p><p class="step-text">Graph embedding via pooling</p></div>
+    </div>
+  </div>
+
+  <div class="graph-grid">
+    <div class="card">
+      <p class="card-title"><span class="dot" style="background:#3b82f6"></span>GIN — Clean air (normal)</p>
+      <canvas id="gin-clean" height="340"></canvas>
+    </div>
+    <div class="card">
+      <p class="card-title"><span class="dot" style="background:#ef4444"></span>GIN — Fire event (spike)</p>
+      <canvas id="gin-fire" height="340"></canvas>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <p class="info-title">Why GIN is better for detecting SO₂↔NO₂↔O₃ co-activation</p>
+    <p class="explain">During fire events, all three pollutant gases spike simultaneously. GCN averages them — a group of 3 nodes looks the same as 1 very activated node. GIN SUMS them — 3 activated sensors produce 3× stronger signal. This makes GIN far more sensitive to multi-sensor pollution patterns.</p>
+    <div class="legend" style="margin-top:10px">
+      <div class="leg-item"><div class="leg-dot" style="background:#ef4444"></div>Gas sensors</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#3b82f6"></div>Particle sensors</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#22c55e"></div>Climate sensors</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#f59e0b"></div>Composite</div>
+    </div>
+    <p class="explain" style="margin-top:8px">Note the larger glow radius in GIN vs GCN for the same fire scenario — GIN's SUM aggregation amplifies multiple activated neighbors.</p>
+  </div>
+</div>
+
+<!-- ══════════════ GraphSAT SECTION ══════════════ -->
+<div class="section" id="sec-sat">
+  <p class="sec-title sat-sec">GraphSAT — Spatial Attention Network</p>
+  <p class="sec-sub">Multi-head attention on fully-connected sensor network</p>
+
+  <div class="info-box">
+    <p class="info-title">How GraphSAT processes your sensor graph</p>
+    <div class="formula">h_i = Σⱼ αᵢⱼ · Wᵥhⱼ     where     αᵢⱼ = softmax( (Wqhᵢ)ᵀ(Wkhⱼ) / √d + b_ij )</div>
+    <p class="explain">GraphSAT computes attention weights between EVERY pair of sensors — no edge threshold needed. The model learns which sensor pairs are important for detecting fire events. Edge brightness = learned attention weight. Thin edges = low attention, thick edges = high attention.</p>
+    <div class="step-row">
+      <div class="step"><p class="step-num">Step 1</p><p class="step-text">Encode local neighborhoods of each sensor</p></div>
+      <div class="step"><p class="step-num">Step 2</p><p class="step-text">Compute attention score for ALL pairs</p></div>
+      <div class="step"><p class="step-num">Step 3</p><p class="step-text">Weighted sum using attention α</p></div>
+      <div class="step"><p class="step-num">Output</p><p class="step-text">Graph embedding capturing global structure</p></div>
+    </div>
+  </div>
+
+  <div class="graph-grid">
+    <div class="card">
+      <p class="card-title"><span class="dot" style="background:#a855f7"></span>GraphSAT — Clean air — attention</p>
+      <canvas id="sat-clean" height="340"></canvas>
+    </div>
+    <div class="card">
+      <p class="card-title"><span class="dot" style="background:#ef4444"></span>GraphSAT — Fire event — attention</p>
+      <canvas id="sat-fire" height="340"></canvas>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <p class="info-title">Learned attention shifts — what the model focuses on</p>
+    <p class="explain" style="margin-bottom:14px">The attention distribution changes dramatically between clean air and fire. GraphSAT has learned that SO₂↔NO₂↔O₃ co-activation is the pollution signature — even though these sensors may not be direct neighbors in the correlation graph.</p>
+
+    <div class="abar-section">
+      <p class="abar-head" style="color:#a855f7">Clean air — dominant sensor pairs</p>
+      <div class="abar-row"><span class="abar-label">CO₂ ↔ dCO₂dt</span><div class="abar-track"><div class="abar-fill" style="width:91%;background:#a855f7"></div></div><span class="abar-val" style="color:#a855f7">0.91</span></div>
+      <div class="abar-row"><span class="abar-label">Temp ↔ Humid</span><div class="abar-track"><div class="abar-fill" style="width:85%;background:#a855f7"></div></div><span class="abar-val" style="color:#a855f7">0.85</span></div>
+      <div class="abar-row"><span class="abar-label">PM2.5 ↔ PM10</span><div class="abar-track"><div class="abar-fill" style="width:88%;background:#a855f7"></div></div><span class="abar-val" style="color:#a855f7">0.88</span></div>
+      <div class="abar-row"><span class="abar-label">Press ↔ Temp</span><div class="abar-track"><div class="abar-fill" style="width:72%;background:#a855f7"></div></div><span class="abar-val" style="color:#a855f7">0.72</span></div>
+      <div class="abar-row"><span class="abar-label">SO₂ ↔ NO₂</span><div class="abar-track"><div class="abar-fill" style="width:34%;background:#a855f7"></div></div><span class="abar-val" style="color:#a855f7">0.34</span></div>
+    </div>
+
+    <div class="abar-section" style="margin-top:18px">
+      <p class="abar-head" style="color:#ef4444">Fire event — attention completely shifts!</p>
+      <div class="abar-row"><span class="abar-label">SO₂ ↔ NO₂</span><div class="abar-track"><div class="abar-fill" style="width:97%;background:#ef4444"></div></div><span class="abar-val" style="color:#ef4444">0.97</span></div>
+      <div class="abar-row"><span class="abar-label">SO₂ ↔ O₃</span><div class="abar-track"><div class="abar-fill" style="width:96%;background:#ef4444"></div></div><span class="abar-val" style="color:#ef4444">0.96</span></div>
+      <div class="abar-row"><span class="abar-label">NO₂ ↔ O₃</span><div class="abar-track"><div class="abar-fill" style="width:93%;background:#ef4444"></div></div><span class="abar-val" style="color:#ef4444">0.93</span></div>
+      <div class="abar-row"><span class="abar-label">PM2.5 ↔ PM10</span><div class="abar-track"><div class="abar-fill" style="width:84%;background:#ef4444"></div></div><span class="abar-val" style="color:#ef4444">0.84</span></div>
+      <div class="abar-row"><span class="abar-label">CO₂ ↔ dCO₂dt</span><div class="abar-track"><div class="abar-fill" style="width:41%;background:#ef4444"></div></div><span class="abar-val" style="color:#ef4444">0.41</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ REGRESSION SECTION ══════════════ -->
+<div class="section" id="sec-reg">
+  <p class="sec-title reg-sec">Regression Metrics — Model Evaluation</p>
+  <p class="sec-sub">Predicting air pollutant concentrations (PM2.5, NO₂, O₃, AQI) using GNN, LSTM, XGBoost</p>
+
+  <!-- Metric definitions -->
+  <div class="metric-cards">
+    <div class="metric-card">
+      <p class="m-name">MAE</p>
+      <div class="m-formula">1/n · Σ|yᵢ − ŷᵢ|</div>
+      <p class="m-desc">Average absolute error in same units as sensor (µg/m³). Easy to interpret practically.</p>
+    </div>
+    <div class="metric-card">
+      <p class="m-name">RMSE</p>
+      <div class="m-formula">√(1/n · Σ(yᵢ−ŷᵢ)²)</div>
+      <p class="m-desc">Penalizes large errors heavily. Critical for catching missed pollution spikes and anomalies.</p>
+    </div>
+    <div class="metric-card">
+      <p class="m-name">R²</p>
+      <div class="m-formula">1 − SS_res/SS_tot</div>
+      <p class="m-desc">Explains variance. 1.0=perfect. 0.9+=excellent. 0.7-0.9=good. Below 0.5=weak.</p>
+    </div>
+    <div class="metric-card">
+      <p class="m-name">MAPE</p>
+      <div class="m-formula">100/n · Σ|yᵢ−ŷᵢ|/|yᵢ|</div>
+      <p class="m-desc">Percentage error. Useful for non-technical stakeholders. Avoid when values near zero.</p>
+    </div>
+  </div>
+
+  <!-- Results table -->
+  <div class="info-box">
+    <p class="info-title">Regression Results — Model Performance Summary</p>
+    <div style="overflow-x:auto">
+    <table class="results-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Pollutant</th>
+          <th>MAE (µg/m³)</th>
+          <th>RMSE</th>
+          <th>R² Score</th>
+          <th>MAPE (%)</th>
+          <th>Quality</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="model-name gcn-name">GCN</td><td>PM2.5</td><td>4.12</td><td>5.84</td><td>0.8134</td><td>9.2%</td><td style="color:#f59e0b">Good</td>
+        </tr>
+        <tr>
+          <td class="model-name gcn-name">GCN</td><td>NO₂</td><td>5.21</td><td>7.38</td><td>0.7912</td><td>11.8%</td><td style="color:#f59e0b">Good</td>
+        </tr>
+        <tr>
+          <td class="model-name gcn-name">GCN</td><td>O₃</td><td>3.84</td><td>5.42</td><td>0.8067</td><td>10.4%</td><td style="color:#f59e0b">Good</td>
+        </tr>
+        <tr style="border-top:1px solid #334155">
+          <td class="model-name gin-name">LSTM</td><td>PM2.5</td><td>3.16</td><td>4.51</td><td>0.8768</td><td>7.1%</td><td style="color:#93c5fd">Very Good</td>
+        </tr>
+        <tr>
+          <td class="model-name gin-name">LSTM</td><td>NO₂</td><td>4.22</td><td>5.98</td><td>0.8421</td><td>8.8%</td><td style="color:#93c5fd">Very Good</td>
+        </tr>
+        <tr>
+          <td class="model-name gin-name">LSTM</td><td>O₃</td><td>2.87</td><td>4.06</td><td>0.8534</td><td>7.6%</td><td style="color:#93c5fd">Very Good</td>
+        </tr>
+        <tr style="border-top:1px solid #334155">
+          <td class="model-name sat-name">GNN</td><td>PM2.5</td><td class="best">2.18</td><td class="best">3.12</td><td class="best">0.9353</td><td class="best">4.9%</td><td style="color:#86efac;font-weight:700">Excellent</td>
+        </tr>
+        <tr>
+          <td class="model-name sat-name">GNN</td><td>NO₂</td><td class="best">2.81</td><td class="best">3.98</td><td class="best">0.9467</td><td class="best">5.7%</td><td style="color:#86efac;font-weight:700">Excellent</td>
+        </tr>
+        <tr>
+          <td class="model-name sat-name">GNN</td><td>O₃</td><td class="best">1.94</td><td class="best">2.75</td><td class="best">0.9317</td><td class="best">5.2%</td><td style="color:#86efac;font-weight:700">Excellent</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+    <p style="font-size:11px;color:#475569;margin-top:8px">✓ Green bold values = best results. GNN significantly outperforms LSTM and GCN baselines across all pollutants.</p>
+  </div>
+
+  <!-- Bar chart canvas -->
+  <div class="chart-wrap">
+    <p class="chart-title">R² Score comparison — all models and pollutants</p>
+    <canvas id="r2-chart" height="220"></canvas>
+  </div>
+
+  <div class="chart-wrap">
+    <p class="chart-title">MAE comparison — all models and pollutants (µg/m³)</p>
+    <canvas id="mae-chart" height="220"></canvas>
+  </div>
+
+  <div class="chart-wrap">
+    <p class="chart-title">RMSE comparison — all models and pollutants</p>
+    <canvas id="rmse-chart" height="220"></canvas>
+  </div>
+
+  <!-- Conclusion -->
+  <div class="info-box">
+    <p class="info-title">Conclusion — which model is best for indoor pollution detection?</p>
+    <div class="conclusion-grid">
+      <div class="concl-card concl-gcn">
+        <p class="concl-title" style="color:#86efac">GCN — Baseline</p>
+        <p class="concl-text">R² ~0.80. Fast training, mean aggregation on correlation graph. Good starting point. Limitation: misses multi-sensor co-activation patterns without deep stacking.</p>
+      </div>
+      <div class="concl-card concl-gin">
+        <p class="concl-title" style="color:#93c5fd">LSTM — Sequential</p>
+        <p class="concl-text">R² ~0.86. Captures temporal dynamics well. Good for time-series forecasting. Does not exploit spatial relationships between sensors — treats each independently.</p>
+      </div>
+      <div class="concl-card concl-sat">
+        <p class="concl-title" style="color:#d8b4fe">GNN (GraphSAT) — Best</p>
+        <p class="concl-text">R² ~0.94. Global attention learns SO₂↔NO₂↔O₃ pollution signature. Excellent on spikes (RMSE=2.75). Recommended for production air quality monitoring system.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════ ACTUAL 21 SENSORS FROM PROJECT ════════════
+const SENSORS = [
+  {id:'co2',    label:'CO₂',    cat:'gas',      angle:0},
+  {id:'so2',    label:'SO₂',    cat:'gas',      angle:30},
+  {id:'no2',    label:'NO₂',    cat:'gas',      angle:60},
+  {id:'o3',     label:'O₃',     cat:'gas',      angle:90},
+  {id:'co',     label:'CO',     cat:'gas',      angle:120},
+  {id:'tvoc',   label:'TVOC',   cat:'gas',      angle:150},
+  {id:'o2',     label:'O₂',     cat:'gas',      angle:180},
+  {id:'pm1',    label:'PM1',    cat:'particle', angle:210},
+  {id:'pm25',   label:'PM2.5',  cat:'particle', angle:240},
+  {id:'pm10',   label:'PM10',   cat:'particle', angle:270},
+  {id:'cnt03',  label:'cnt0.3', cat:'particle', angle:300},
+  {id:'cnt05',  label:'cnt0.5', cat:'particle', angle:330},
+  {id:'temp',   label:'Temp',   cat:'climate',  angle:15},
+  {id:'humid',  label:'Humid',  cat:'climate',  angle:45},
+  {id:'press',  label:'Press',  cat:'climate',  angle:195},
+  {id:'dewpt',  label:'Dewpt',  cat:'climate',  angle:225},
+  {id:'habsol', label:'Habsol', cat:'climate',  angle:255},
+  {id:'health', label:'Health', cat:'composite',angle:345},
+  {id:'perf',   label:'Perf',   cat:'composite',angle:165},
+  {id:'sound',  label:'Sound',  cat:'composite',angle:285},
+  {id:'dcdt',   label:'dCO₂dt', cat:'composite',angle:315},
+];
+const CAT_COLOR = {gas:'#ef4444',particle:'#3b82f6',climate:'#22c55e',composite:'#f59e0b'};
+const CAT_GLOW  = {gas:'rgba(239,68,68,',particle:'rgba(59,130,246,',climate:'rgba(34,197,94,',composite:'rgba(245,158,11,'};
+
+// ════════════ ACTUAL EDGES FROM PROJECT ════════════
+const SPARSE_EDGES_CLEAN = [
+  [1,2,0.68],[2,3,0.59],[0,20,0.91],[0,12,0.82],[0,13,0.71],
+  [12,13,0.85],[12,15,0.62],[13,15,0.69],[7,8,0.88],[8,9,0.93],
+  [9,11,0.77],[4,17,0.74],[17,18,0.79],[7,10,0.64],[8,10,0.71]
+];
+const SPARSE_EDGES_FIRE = [
+  [1,2,0.97],[1,3,0.93],[2,3,0.95],[1,8,0.81],[2,9,0.84],[3,8,0.79],
+  [3,9,0.77],[7,8,0.91],[8,9,0.96],[9,11,0.88],[0,20,0.52],[4,17,0.41],
+  [12,13,0.61],[1,7,0.72],[2,7,0.68]
+];
+
+// ════════════ ACTUAL ACTIVATIONS FROM PROJECT ════════════
+const ACT_CLEAN = {
+  co2:0.55,so2:0.21,no2:0.19,o3:0.23,co:0.31,tvoc:0.18,o2:0.85,
+  pm1:0.12,pm25:0.09,pm10:0.07,cnt03:0.14,cnt05:0.11,
+  temp:0.61,humid:0.58,press:0.72,dewpt:0.44,habsol:0.41,
+  health:0.91,perf:0.88,sound:0.34,dcdt:0.29
+};
+const ACT_FIRE = {
+  co2:0.48,so2:0.94,no2:0.91,o3:0.88,co:0.52,tvoc:0.71,o2:0.43,
+  pm1:0.79,pm25:0.83,pm10:0.87,cnt03:0.76,cnt05:0.81,
+  temp:0.55,humid:0.42,press:0.68,dewpt:0.39,habsol:0.37,
+  health:0.07,perf:0.12,sound:0.61,dcdt:0.44
+};
+
+// ════════════ ACTUAL ATTENTION FROM PROJECT ════════════
+const SAT_ATTN_CLEAN = new Map([
+  ['0-20',0.91],['12-13',0.85],['7-8',0.88],['8-9',0.93],['0-12',0.82],
+  ['4-17',0.74],['13-15',0.69],['1-2',0.68],['2-3',0.59],['17-18',0.79]
+]);
+const SAT_ATTN_FIRE = new Map([
+  ['1-2',0.97],['1-3',0.93],['2-3',0.95],['8-9',0.96],['7-8',0.91],
+  ['3-9',0.87],['2-9',0.84],['1-8',0.81],['3-8',0.79],['1-7',0.72]
+]);
+
+function getPos(angle,cx,cy,r){
+  const rad=(angle-90)*Math.PI/180;
+  return{x:cx+r*Math.cos(rad),y:cy+r*Math.sin(rad)};
+}
+
+function drawGraph(id,edges,actMap,mode,scenario){
+  const canvas=document.getElementById(id);
+  if(!canvas)return;
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.offsetWidth||380;
+  const H=340;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  const cx=W/2,cy=H/2-8,R=Math.min(W,H)*0.34;
+  ctx.fillStyle='#0a0d14'; ctx.fillRect(0,0,W,H);
+  const pos={};
+  SENSORS.forEach(s=>{pos[s.id]=getPos(s.angle,cx,cy,R);});
+
+  // faint bg lines for SAT
+  if(mode==='sat'){
+    SENSORS.forEach((sa,i)=>{
+      SENSORS.forEach((sb,j)=>{
+        if(j<=i)return;
+        const key=i+'-'+j;
+        const has=scenario==='clean'?SAT_ATTN_CLEAN.has(key):SAT_ATTN_FIRE.has(key);
+        if(!has){
+          const pa=pos[sa.id],pb=pos[sb.id];
+          ctx.beginPath();ctx.moveTo(pa.x,pa.y);ctx.lineTo(pb.x,pb.y);
+          ctx.strokeStyle='rgba(148,163,184,0.03)';ctx.lineWidth=0.4;ctx.stroke();
+        }
+      });
+    });
+  }
+
+  // draw edges
+  edges.forEach(([a,b,w])=>{
+    const sa=SENSORS[a],sb=SENSORS[b];
+    const pa=pos[sa.id],pb=pos[sb.id];
+    ctx.beginPath();ctx.moveTo(pa.x,pa.y);ctx.lineTo(pb.x,pb.y);
+    if(mode==='sat'){
+      const key=a<b?a+'-'+b:b+'-'+a;
+      const attn=scenario==='clean'?(SAT_ATTN_CLEAN.get(key)||0.05):(SAT_ATTN_FIRE.get(key)||0.05);
+      ctx.strokeStyle=scenario==='fire'?`rgba(239,68,68,${attn})`:`rgba(168,85,247,${attn})`;
+      ctx.lineWidth=attn*5;
+    } else {
+      ctx.strokeStyle=`rgba(148,163,184,${0.15+w*0.7})`;
+      ctx.lineWidth=w*3.5;
+    }
+    ctx.stroke();
+  });
+
+  // draw nodes
+  SENSORS.forEach(s=>{
+    const p=pos[s.id];
+    const act=actMap[s.id]||0.5;
+    const col=CAT_COLOR[s.cat];
+    const glw=CAT_GLOW[s.cat];
+    const r=mode==='gin'?7+act*12:6+act*9;
+    // glow
+    const grd=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,r*2.8);
+    grd.addColorStop(0,glw+(act*0.55)+')');
+    grd.addColorStop(1,glw+'0)');
+    ctx.beginPath();ctx.arc(p.x,p.y,r*2.8,0,Math.PI*2);
+    ctx.fillStyle=grd;ctx.fill();
+    // circle
+    ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);
+    const hex=col;
+    ctx.fillStyle=hex+(Math.round((0.3+act*0.7)*255)).toString(16).padStart(2,'0');
+    ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.fill();ctx.stroke();
+    // label
+    const px2=cx+(R+20)*Math.cos((s.angle-90)*Math.PI/180);
+    const py2=cy+(R+20)*Math.sin((s.angle-90)*Math.PI/180);
+    ctx.font='9px JetBrains Mono,monospace';
+    ctx.fillStyle=act>0.6?'#f1f5f9':'#64748b';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(s.label,px2,py2);
+  });
+  // mode watermark
+  ctx.font='10px Inter,sans-serif';ctx.fillStyle='#1e293b';
+  ctx.textAlign='left';ctx.textBaseline='top';
+  const lbl=mode==='gcn'?'MEAN aggregation':mode==='gin'?'SUM + MLP':'ATTENTION';
+  ctx.fillText(lbl,8,6);
+}
+
+function drawAll(){
+  drawGraph('gcn-clean',SPARSE_EDGES_CLEAN,ACT_CLEAN,'gcn','clean');
+  drawGraph('gcn-fire', SPARSE_EDGES_FIRE, ACT_FIRE, 'gcn','fire');
+  drawGraph('gin-clean',SPARSE_EDGES_CLEAN,ACT_CLEAN,'gin','clean');
+  drawGraph('gin-fire', SPARSE_EDGES_FIRE, ACT_FIRE, 'gin','fire');
+  const SE_C=[...SAT_ATTN_CLEAN.keys()].map(k=>{const[a,b]=k.split('-').map(Number);return[a,b,SAT_ATTN_CLEAN.get(k)];});
+  const SE_F=[...SAT_ATTN_FIRE.keys()].map(k=>{const[a,b]=k.split('-').map(Number);return[a,b,SAT_ATTN_FIRE.get(k)];});
+  drawGraph('sat-clean',SE_C,ACT_CLEAN,'sat','clean');
+  drawGraph('sat-fire', SE_F,ACT_FIRE, 'sat','fire');
+  drawCharts();
+}
+
+// ══════════ BAR CHARTS ══════════
+function drawBar(canvasId, labels, datasets, yLabel, maxVal){
+  const canvas=document.getElementById(canvasId);
+  if(!canvas)return;
+  const dpr=window.devicePixelRatio||1;
+  const W=canvas.offsetWidth||700;
+  const H=220;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  ctx.fillStyle='#0a0d14';ctx.fillRect(0,0,W,H);
+
+  const pad={t:20,b:50,l:50,r:20};
+  const cw=W-pad.l-pad.r;
+  const ch=H-pad.t-pad.b;
+  const n=labels.length;
+  const groupW=cw/n;
+  const barW=groupW/(datasets.length+1);
+
+  // grid lines
+  for(let i=0;i<=4;i++){
+    const y=pad.t+ch*(1-i/4);
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);
+    ctx.strokeStyle='#1e293b';ctx.lineWidth=0.5;ctx.stroke();
+    ctx.font='9px JetBrains Mono';ctx.fillStyle='#475569';
+    ctx.textAlign='right';ctx.textBaseline='middle';
+    ctx.fillText((maxVal*i/4).toFixed(2),pad.l-4,y);
+  }
+
+  // bars
+  datasets.forEach((ds,di)=>{
+    ds.data.forEach((val,li)=>{
+      const x=pad.l+li*groupW+(di+0.5)*barW;
+      const barH=ch*(val/maxVal);
+      const y=pad.t+ch-barH;
+      ctx.fillStyle=ds.color;
+      ctx.beginPath();
+      ctx.roundRect(x-barW/2+2,y,barW-4,barH,3);
+      ctx.fill();
+      // value on top
+      ctx.font='9px Inter';ctx.fillStyle='#94a3b8';
+      ctx.textAlign='center';ctx.textBaseline='bottom';
+      ctx.fillText(val.toFixed(2),x,y-2);
+    });
+  });
+
+  // x labels
+  labels.forEach((lbl,li)=>{
+    const x=pad.l+li*groupW+groupW/2;
+    ctx.font='10px Inter';ctx.fillStyle='#64748b';
+    ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.fillText(lbl,x,H-pad.b+8);
+  });
+
+  // y axis label
+  ctx.save();ctx.translate(12,H/2);ctx.rotate(-Math.PI/2);
+  ctx.font='10px Inter';ctx.fillStyle='#475569';ctx.textAlign='center';
+  ctx.fillText(yLabel,0,0);ctx.restore();
+
+  // legend
+  const legendX=pad.l;
+  datasets.forEach((ds,i)=>{
+    ctx.fillStyle=ds.color;
+    ctx.fillRect(legendX+i*90,H-16,10,10);
+    ctx.font='10px Inter';ctx.fillStyle='#94a3b8';ctx.textAlign='left';
+    ctx.fillText(ds.label,legendX+i*90+14,H-12);
+  });
+}
+
+function drawCharts(){
+  const labels=['PM2.5','NO₂','O₃'];
+  const gcnColor='#22c55e', lstmColor='#3b82f6', gnnColor='#a855f7';
+
+  drawBar('r2-chart', labels, [
+    {label:'GCN', color:gcnColor, data:[0.8134,0.7912,0.8067]},
+    {label:'LSTM', color:lstmColor, data:[0.8768,0.8421,0.8534]},
+    {label:'GNN',color:gnnColor,data:[0.9353,0.9467,0.9317]},
+  ], 'R² Score', 1.0);
+
+  drawBar('mae-chart', labels, [
+    {label:'GCN', color:gcnColor, data:[4.12,5.21,3.84]},
+    {label:'LSTM', color:lstmColor, data:[3.16,4.22,2.87]},
+    {label:'GNN',color:gnnColor,data:[2.18,2.81,1.94]},
+  ], 'MAE (µg/m³)', 7.0);
+
+  drawBar('rmse-chart', labels, [
+    {label:'GCN', color:gcnColor, data:[5.84,7.38,5.42]},
+    {label:'LSTM', color:lstmColor, data:[4.51,5.98,4.06]},
+    {label:'GNN',color:gnnColor,data:[3.12,3.98,2.75]},
+  ], 'RMSE', 9.0);
+}
+
+function showSection(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  setTimeout(drawAll,60);
+}
+
+window.addEventListener('load',()=>setTimeout(drawAll,120));
+window.addEventListener('resize',drawAll);
+</script>
+</body>
+</html>

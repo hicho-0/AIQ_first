@@ -1,0 +1,417 @@
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix sosa: <http://www.w3.org/ns/sosa/> .
+@prefix ssn:  <http://www.w3.org/ns/ssn/> .
+@prefix time: <http://www.w3.org/2006/time#> .
+@prefix qudt: <http://qudt.org/schema/qudt/> .
+@prefix unit: <http://qudt.org/vocab/unit/> .
+@prefix iaq:  <http://example.org/iaq/> .
+
+# ============================================================================
+# ONTOLOGY METADATA
+# ============================================================================
+
+<http://example.org/iaq/> a owl:Ontology ;
+	rdfs:label "Indoor Air Quality Knowledge Graph Ontology (V2)"@en ;
+	rdfs:comment "Cleaned V2 ontology aligned with laboratory.csv and one_room_apartement.csv"@en ;
+	owl:versionInfo "2.0.0" ;
+	owl:imports <http://www.w3.org/ns/sosa/> ;
+	owl:imports <http://www.w3.org/ns/ssn/> ;
+	owl:imports <http://www.w3.org/2006/time/> .
+
+# ============================================================================
+# CORE CLASSES
+# ============================================================================
+
+iaq:Location a owl:Class ;
+	rdfs:label "Location"@en ;
+	rdfs:subClassOf sosa:Platform .
+
+iaq:IndoorLocation a owl:Class ;
+	rdfs:label "Indoor Location"@en ;
+	rdfs:subClassOf iaq:Location .
+
+iaq:Laboratory a owl:Class ;
+	rdfs:label "Laboratory"@en ;
+	rdfs:subClassOf iaq:IndoorLocation .
+
+iaq:OneRoomApartment a owl:Class ;
+	rdfs:label "One Room Apartment"@en ;
+	rdfs:subClassOf iaq:IndoorLocation .
+
+iaq:Dataset a owl:Class ;
+	rdfs:label "Dataset"@en ;
+	rdfs:comment "CSV source file for observations"@en .
+
+iaq:AirQSensor a owl:Class ;
+	rdfs:label "airQ Sensor"@en ;
+	rdfs:subClassOf sosa:Sensor .
+
+iaq:Observation a owl:Class ;
+	rdfs:label "IAQ Observation"@en ;
+	rdfs:subClassOf sosa:Observation ;
+	rdfs:comment "One row-level observation containing the full 31 sensor fields"@en .
+
+iaq:AnomalyEvent a owl:Class ;
+	rdfs:label "Anomaly Event"@en .
+
+iaq:MeasurementError a owl:Class ;
+	rdfs:label "Measurement Error"@en ;
+	rdfs:subClassOf iaq:AnomalyEvent .
+
+iaq:PowerOutage a owl:Class ;
+	rdfs:label "Power Outage"@en ;
+	rdfs:subClassOf iaq:AnomalyEvent .
+
+iaq:ExternalPollutionEvent a owl:Class ;
+	rdfs:label "External Pollution Event"@en ;
+	rdfs:subClassOf iaq:AnomalyEvent .
+
+iaq:AirQualityStatus a owl:Class ;
+	rdfs:label "Air Quality Status"@en .
+
+iaq:Good a owl:Class ;
+	rdfs:label "Good"@en ;
+	rdfs:subClassOf iaq:AirQualityStatus .
+
+iaq:Moderate a owl:Class ;
+	rdfs:label "Moderate"@en ;
+	rdfs:subClassOf iaq:AirQualityStatus .
+
+iaq:Poor a owl:Class ;
+	rdfs:label "Poor"@en ;
+	rdfs:subClassOf iaq:AirQualityStatus .
+
+iaq:GasAlarm a owl:Class ;
+	rdfs:label "Gas Alarm"@en ;
+	rdfs:subClassOf iaq:AirQualityStatus .
+
+iaq:FireAlarm a owl:Class ;
+	rdfs:label "Fire Alarm"@en ;
+	rdfs:subClassOf iaq:AirQualityStatus .
+
+iaq:MLPollutionClass a owl:Class ;
+	rdfs:label "ML Pollution Class"@en ;
+	rdfs:comment "4-class label used in graph ML experiments"@en .
+
+iaq:ThresholdRule a owl:Class ;
+	rdfs:label "Threshold Rule"@en ;
+	rdfs:comment "Named threshold used by labeling logic"@en .
+
+# ============================================================================
+# LOCATION, DATASET, SENSOR INDIVIDUALS
+# ============================================================================
+
+iaq:AachenLab a iaq:Laboratory ;
+	rdfs:label "Aachen Laboratory"@en ;
+	iaq:buildingName "Aachen University" ;
+	iaq:roomType "Laboratory" ;
+	iaq:country "Germany" ;
+	iaq:city "Aachen" .
+
+iaq:AachenApartment a iaq:OneRoomApartment ;
+	rdfs:label "Aachen One Room Apartment"@en ;
+	iaq:buildingName "Residential Apartment" ;
+	iaq:roomType "One-Room Apartment" ;
+	iaq:country "Germany" ;
+	iaq:city "Aachen" .
+
+iaq:dataset_laboratory_csv a iaq:Dataset ;
+	rdfs:label "laboratory.csv"@en ;
+	iaq:fileName "laboratory.csv" .
+
+iaq:dataset_one_room_apartement_csv a iaq:Dataset ;
+	rdfs:label "one_room_apartement.csv"@en ;
+	iaq:fileName "one_room_apartement.csv" .
+
+iaq:airQSensor_Lab a iaq:AirQSensor ;
+	rdfs:label "airQ Sensor in Laboratory"@en ;
+	sosa:isHostedBy iaq:AachenLab ;
+	iaq:serialNumber "LAB_001" ;
+	iaq:installationDate "2023-01-01"^^xsd:date .
+
+iaq:airQSensor_Apartment a iaq:AirQSensor ;
+	rdfs:label "airQ Sensor in Apartment"@en ;
+	sosa:isHostedBy iaq:AachenApartment ;
+	iaq:serialNumber "APT_001" ;
+	iaq:installationDate "2023-01-01"^^xsd:date .
+
+# ============================================================================
+# OBJECT PROPERTIES
+# ============================================================================
+
+iaq:measuredAt a owl:ObjectProperty ;
+	rdfs:label "measured at"@en ;
+	rdfs:domain iaq:Observation ;
+	rdfs:range iaq:Location .
+
+iaq:hasSourceDataset a owl:ObjectProperty ;
+	rdfs:label "has source dataset"@en ;
+	rdfs:domain iaq:Observation ;
+	rdfs:range iaq:Dataset .
+
+iaq:hasAirQualityStatus a owl:ObjectProperty ;
+	rdfs:label "has air quality status"@en ;
+	rdfs:domain iaq:Observation ;
+	rdfs:range iaq:AirQualityStatus .
+
+iaq:hasMLClass a owl:ObjectProperty ;
+	rdfs:label "has ML class"@en ;
+	rdfs:domain iaq:Observation ;
+	rdfs:range iaq:MLPollutionClass .
+
+iaq:linkedToAnomaly a owl:ObjectProperty ;
+	rdfs:label "linked to anomaly"@en ;
+	rdfs:domain iaq:Observation ;
+	rdfs:range iaq:AnomalyEvent .
+
+iaq:affectedSensor a owl:ObjectProperty ;
+	rdfs:label "affected sensor"@en ;
+	rdfs:domain iaq:AnomalyEvent ;
+	rdfs:range iaq:AirQSensor .
+
+iaq:affectedLocation a owl:ObjectProperty ;
+	rdfs:label "affected location"@en ;
+	rdfs:domain iaq:AnomalyEvent ;
+	rdfs:range iaq:Location .
+
+iaq:affectsProperty a owl:ObjectProperty ;
+	rdfs:label "affects property"@en ;
+	rdfs:domain iaq:AnomalyEvent ;
+	rdfs:range sosa:ObservableProperty .
+
+iaq:usesThreshold a owl:ObjectProperty ;
+	rdfs:label "uses threshold"@en ;
+	rdfs:domain iaq:MLPollutionClass ;
+	rdfs:range iaq:ThresholdRule .
+
+# ============================================================================
+# DESCRIPTIVE DATATYPE PROPERTIES
+# ============================================================================
+
+iaq:buildingName a owl:DatatypeProperty ; rdfs:range xsd:string .
+iaq:roomType a owl:DatatypeProperty ; rdfs:range xsd:string .
+iaq:country a owl:DatatypeProperty ; rdfs:range xsd:string .
+iaq:city a owl:DatatypeProperty ; rdfs:range xsd:string .
+iaq:fileName a owl:DatatypeProperty ; rdfs:range xsd:string .
+iaq:serialNumber a owl:DatatypeProperty ; rdfs:range xsd:string .
+iaq:installationDate a owl:DatatypeProperty ; rdfs:range xsd:date .
+iaq:eventDate a owl:DatatypeProperty ; rdfs:range xsd:date .
+iaq:eventDescription a owl:DatatypeProperty ; rdfs:range xsd:string .
+iaq:severity a owl:DatatypeProperty ; rdfs:range xsd:string .
+iaq:notes a owl:DatatypeProperty ; rdfs:range xsd:string .
+iaq:healthThresholdMin a owl:DatatypeProperty ; rdfs:range xsd:double .
+iaq:healthThresholdMax a owl:DatatypeProperty ; rdfs:range xsd:double .
+iaq:healthThresholdExact a owl:DatatypeProperty ; rdfs:range xsd:double .
+iaq:classIndex a owl:DatatypeProperty ; rdfs:range xsd:integer .
+iaq:thresholdName a owl:DatatypeProperty ; rdfs:range xsd:string .
+iaq:thresholdValue a owl:DatatypeProperty ; rdfs:range xsd:double .
+
+# ============================================================================
+# OBSERVABLE PROPERTIES (31 DATASET FIELDS)
+# ============================================================================
+
+iaq:TypPS a sosa:ObservableProperty ; rdfs:label "TypPS"@en ; qudt:hasUnit unit:Micrometer .
+iaq:oxygen a sosa:ObservableProperty ; rdfs:label "oxygen"@en ; qudt:hasUnit unit:PERCENT .
+iaq:pm10 a sosa:ObservableProperty ; rdfs:label "pm10"@en ; qudt:hasUnit unit:MicrogramPER_M3 .
+iaq:cnt0_5 a sosa:ObservableProperty ; rdfs:label "cnt0_5"@en ; qudt:hasUnit unit:UNITLESS .
+iaq:co a sosa:ObservableProperty ; rdfs:label "co"@en ; qudt:hasUnit unit:PPM .
+iaq:temperature a sosa:ObservableProperty ; rdfs:label "temperature"@en ; qudt:hasUnit unit:DEG_C .
+iaq:performance a sosa:ObservableProperty ; rdfs:label "performance"@en ; qudt:hasUnit unit:UNITLESS .
+iaq:co2 a sosa:ObservableProperty ; rdfs:label "co2"@en ; qudt:hasUnit unit:PPM .
+iaq:measuretime a sosa:ObservableProperty ; rdfs:label "measuretime"@en ; qudt:hasUnit unit:MilliSEC .
+iaq:so2 a sosa:ObservableProperty ; rdfs:label "so2"@en ; qudt:hasUnit unit:MicrogramPER_M3 .
+iaq:no2 a sosa:ObservableProperty ; rdfs:label "no2"@en ; qudt:hasUnit unit:MicrogramPER_M3 .
+iaq:cnt5 a sosa:ObservableProperty ; rdfs:label "cnt5"@en ; qudt:hasUnit unit:UNITLESS .
+iaq:timestamp a sosa:ObservableProperty ; rdfs:label "timestamp"@en ; qudt:hasUnit unit:UNITLESS .
+iaq:pm1 a sosa:ObservableProperty ; rdfs:label "pm1"@en ; qudt:hasUnit unit:MicrogramPER_M3 .
+iaq:cnt1 a sosa:ObservableProperty ; rdfs:label "cnt1"@en ; qudt:hasUnit unit:UNITLESS .
+iaq:dewpt a sosa:ObservableProperty ; rdfs:label "dewpt"@en ; qudt:hasUnit unit:DEG_C .
+iaq:tvoc a sosa:ObservableProperty ; rdfs:label "tvoc"@en ; qudt:hasUnit unit:PPB .
+iaq:pressure a sosa:ObservableProperty ; rdfs:label "pressure"@en ; qudt:hasUnit unit:HPA .
+iaq:cnt10 a sosa:ObservableProperty ; rdfs:label "cnt10"@en ; qudt:hasUnit unit:UNITLESS .
+iaq:dCO2dt a sosa:ObservableProperty ; rdfs:label "dCO2dt"@en ; qudt:hasUnit unit:PPM-PER-SEC .
+iaq:sound_max a sosa:ObservableProperty ; rdfs:label "sound_max"@en ; qudt:hasUnit unit:DeciBEL .
+iaq:health a sosa:ObservableProperty ; rdfs:label "health"@en ; qudt:hasUnit unit:UNITLESS .
+iaq:temperature_o2 a sosa:ObservableProperty ; rdfs:label "temperature_o2"@en ; qudt:hasUnit unit:DEG_C .
+iaq:cnt2_5 a sosa:ObservableProperty ; rdfs:label "cnt2_5"@en ; qudt:hasUnit unit:UNITLESS .
+iaq:o3 a sosa:ObservableProperty ; rdfs:label "o3"@en ; qudt:hasUnit unit:MicrogramPER_M3 .
+iaq:humidity a sosa:ObservableProperty ; rdfs:label "humidity"@en ; qudt:hasUnit unit:PERCENT .
+iaq:dHdt a sosa:ObservableProperty ; rdfs:label "dHdt"@en ; qudt:hasUnit unit:GM-PER-M3-PER-SEC .
+iaq:humidity_abs a sosa:ObservableProperty ; rdfs:label "humidity_abs"@en ; qudt:hasUnit unit:GM-PER-M3 .
+iaq:sound a sosa:ObservableProperty ; rdfs:label "sound"@en ; qudt:hasUnit unit:DeciBEL .
+iaq:pm2_5 a sosa:ObservableProperty ; rdfs:label "pm2_5"@en ; qudt:hasUnit unit:MicrogramPER_M3 .
+iaq:cnt0_3 a sosa:ObservableProperty ; rdfs:label "cnt0_3"@en ; qudt:hasUnit unit:UNITLESS .
+
+# ============================================================================
+# OBSERVATION DATATYPE PROPERTIES (31 DATASET FIELDS)
+# ============================================================================
+
+iaq:TypPSValue a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:Micrometer .
+iaq:oxygenValue a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:PERCENT .
+iaq:pm10Value a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:MicrogramPER_M3 .
+iaq:cnt0_5Value a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:UNITLESS .
+iaq:coValue a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:PPM .
+iaq:temperatureValue a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:DEG_C .
+iaq:performanceValue a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:UNITLESS .
+iaq:co2Value a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:PPM .
+iaq:measuretimeValue a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:integer ; qudt:hasUnit unit:MilliSEC .
+iaq:so2Value a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:MicrogramPER_M3 .
+iaq:no2Value a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:MicrogramPER_M3 .
+iaq:cnt5Value a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:UNITLESS .
+iaq:timestampValue a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:dateTime .
+iaq:pm1Value a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:MicrogramPER_M3 .
+iaq:cnt1Value a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:UNITLESS .
+iaq:dewptValue a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:DEG_C .
+iaq:tvocValue a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:PPB .
+iaq:pressureValue a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:HPA .
+iaq:cnt10Value a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:UNITLESS .
+iaq:dCO2dtValue a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:PPM-PER-SEC .
+iaq:soundMaxValue a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:DeciBEL .
+iaq:healthValue a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:UNITLESS .
+iaq:temperatureO2Value a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:DEG_C .
+iaq:cnt2_5Value a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:UNITLESS .
+iaq:o3Value a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:MicrogramPER_M3 .
+iaq:humidityValue a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:PERCENT .
+iaq:dHdtValue a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:GM-PER-M3-PER-SEC .
+iaq:humidityAbsValue a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:GM-PER-M3 .
+iaq:soundValue a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:DeciBEL .
+iaq:pm2_5Value a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:MicrogramPER_M3 .
+iaq:cnt0_3Value a owl:DatatypeProperty ; rdfs:domain iaq:Observation ; rdfs:range xsd:double ; qudt:hasUnit unit:UNITLESS .
+
+# ============================================================================
+# AIR QUALITY STATUS INDIVIDUALS
+# ============================================================================
+
+iaq:status_Good a iaq:Good ;
+	rdfs:label "Air Quality Status Good"@en ;
+	iaq:healthThresholdMin 700.0 .
+
+iaq:status_Moderate a iaq:Moderate ;
+	rdfs:label "Air Quality Status Moderate"@en ;
+	iaq:healthThresholdMin 400.0 ;
+	iaq:healthThresholdMax 699.0 .
+
+iaq:status_Poor a iaq:Poor ;
+	rdfs:label "Air Quality Status Poor"@en ;
+	iaq:healthThresholdMax 399.0 .
+
+iaq:status_GasAlarm a iaq:GasAlarm ;
+	rdfs:label "Air Quality Status Gas Alarm"@en ;
+	iaq:healthThresholdExact -200.0 .
+
+iaq:status_FireAlarm a iaq:FireAlarm ;
+	rdfs:label "Air Quality Status Fire Alarm"@en ;
+	iaq:healthThresholdExact -800.0 .
+
+# ============================================================================
+# ML LABEL CLASSES AND THRESHOLDS
+# ============================================================================
+
+iaq:ml_class_0_clean a iaq:MLPollutionClass ;
+	rdfs:label "Class 0 Clean"@en ;
+	iaq:classIndex 0 .
+
+iaq:ml_class_1_polluted a iaq:MLPollutionClass ;
+	rdfs:label "Class 1 Polluted"@en ;
+	iaq:classIndex 1 .
+
+iaq:ml_class_2_gas_alarm a iaq:MLPollutionClass ;
+	rdfs:label "Class 2 Gas Alarm"@en ;
+	iaq:classIndex 2 .
+
+iaq:ml_class_3_fire_alarm a iaq:MLPollutionClass ;
+	rdfs:label "Class 3 Fire Alarm"@en ;
+	iaq:classIndex 3 .
+
+iaq:threshold_CO2_1000ppm a iaq:ThresholdRule ;
+	iaq:thresholdName "CO2 danger threshold" ;
+	iaq:thresholdValue 1000.0 .
+
+iaq:threshold_CO_200ppm a iaq:ThresholdRule ;
+	iaq:thresholdName "CO danger threshold" ;
+	iaq:thresholdValue 200.0 .
+
+iaq:threshold_PM25_35ugm3 a iaq:ThresholdRule ;
+	iaq:thresholdName "PM2.5 danger threshold" ;
+	iaq:thresholdValue 35.0 .
+
+iaq:threshold_TVOC_500ppb a iaq:ThresholdRule ;
+	iaq:thresholdName "TVOC danger threshold" ;
+	iaq:thresholdValue 500.0 .
+
+iaq:ml_class_1_polluted iaq:usesThreshold iaq:threshold_CO2_1000ppm, iaq:threshold_CO_200ppm, iaq:threshold_PM25_35ugm3, iaq:threshold_TVOC_500ppb .
+
+# ============================================================================
+# ANOMALY EVENTS (DATE-CORRECTED)
+# ============================================================================
+
+iaq:event_20230417_PowerOutage a iaq:PowerOutage ;
+	rdfs:label "Power outage in laboratory"@en ;
+	iaq:eventDate "2023-04-17"^^xsd:date ;
+	iaq:eventDescription "Lab power outage, likely short circuit" ;
+	iaq:affectedSensor iaq:airQSensor_Lab ;
+	iaq:affectedLocation iaq:AachenLab ;
+	iaq:severity "High" ;
+	iaq:notes "Known anomaly from project data description" ;
+	iaq:affectsProperty iaq:health, iaq:performance, iaq:measuretime .
+
+iaq:event_20230521_ExternalFireEvent a iaq:ExternalPollutionEvent ;
+	rdfs:label "External fire event near Herzogenrath"@en ;
+	iaq:eventDate "2023-05-21"^^xsd:date ;
+	iaq:eventDescription "Large fire 9-10 km away from measurement location" ;
+	iaq:affectedSensor iaq:airQSensor_Lab ;
+	iaq:affectedLocation iaq:AachenLab ;
+	iaq:severity "High" ;
+	iaq:notes "Expected impact on gas and particulate signals" ;
+	iaq:affectsProperty iaq:so2, iaq:no2, iaq:o3, iaq:pm10, iaq:pm2_5 .
+
+iaq:event_20230709_HumiditySensorError a iaq:MeasurementError ;
+	rdfs:label "Fine dust measurement error from humidity spike"@en ;
+	iaq:eventDate "2023-07-09"^^xsd:date ;
+	iaq:eventDescription "Sudden humidity increase produced fine dust measurement artifacts" ;
+	iaq:affectedSensor iaq:airQSensor_Lab ;
+	iaq:affectedLocation iaq:AachenLab ;
+	iaq:severity "Medium" ;
+	iaq:notes "Treat as sensor artifact rather than real pollution rise" ;
+	iaq:affectsProperty iaq:pm1, iaq:pm2_5, iaq:pm10, iaq:humidity .
+
+# ============================================================================
+# DEPRECATED FROM V1 (NOT IN CURRENT CSV SCOPE)
+# ============================================================================
+
+iaq:NH3 a sosa:ObservableProperty ;
+	rdfs:label "NH3 (deprecated in V2 scope)"@en ;
+	owl:deprecated "true"^^xsd:boolean ;
+	rdfs:comment "Not present in current laboratory/apartment CSV files"@en .
+
+iaq:H2S a sosa:ObservableProperty ;
+	rdfs:label "H2S (deprecated in V2 scope)"@en ;
+	owl:deprecated "true"^^xsd:boolean ;
+	rdfs:comment "Not present in current laboratory/apartment CSV files"@en .
+
+iaq:Radon a sosa:ObservableProperty ;
+	rdfs:label "Radon (deprecated in V2 scope)"@en ;
+	owl:deprecated "true"^^xsd:boolean ;
+	rdfs:comment "Not present in current laboratory/apartment CSV files"@en .
+
+iaq:MoldIndex a sosa:ObservableProperty ;
+	rdfs:label "MoldIndex (deprecated in V2 scope)"@en ;
+	owl:deprecated "true"^^xsd:boolean ;
+	rdfs:comment "Not present in current laboratory/apartment CSV files"@en .
+
+iaq:LightLevel a sosa:ObservableProperty ;
+	rdfs:label "LightLevel (deprecated in V2 scope)"@en ;
+	owl:deprecated "true"^^xsd:boolean ;
+	rdfs:comment "Not present in current laboratory/apartment CSV files"@en .
+
+iaq:CH2OIndex a sosa:ObservableProperty ;
+	rdfs:label "CH2OIndex (deprecated in V2 scope)"@en ;
+	owl:deprecated "true"^^xsd:boolean ;
+	rdfs:comment "Not present in current laboratory/apartment CSV files"@en .
+
+# ============================================================================
+# END OF V2 ONTOLOGY
+# ============================================================================

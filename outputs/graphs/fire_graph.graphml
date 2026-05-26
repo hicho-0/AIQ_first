@@ -1,0 +1,302 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd"><key id="d2" for="edge" attr.name="weight" attr.type="double"/>
+<key id="d1" for="node" attr.name="category" attr.type="string"/>
+<key id="d0" for="node" attr.name="value" attr.type="double"/>
+<graph edgedefault="undirected"><node id="TypPS">
+  <data key="d0">0.047299616038799286</data>
+  <data key="d1">particle</data>
+</node>
+<node id="oxygen">
+  <data key="d0">0.9076363444328308</data>
+  <data key="d1">gas</data>
+</node>
+<node id="pm10">
+  <data key="d0">0.05552792176604271</data>
+  <data key="d1">particle</data>
+</node>
+<node id="cnt0_5">
+  <data key="d0">0.1476047784090042</data>
+  <data key="d1">particle</data>
+</node>
+<node id="co">
+  <data key="d0">0.5590322613716125</data>
+  <data key="d1">gas</data>
+</node>
+<node id="temperature">
+  <data key="d0">0.44156980514526367</data>
+  <data key="d1">climate</data>
+</node>
+<node id="performance">
+  <data key="d0">0.9289389252662659</data>
+  <data key="d1">composite</data>
+</node>
+<node id="co2">
+  <data key="d0">0.04474707320332527</data>
+  <data key="d1">gas</data>
+</node>
+<node id="measuretime">
+  <data key="d0">0.9999943971633911</data>
+  <data key="d1">other</data>
+</node>
+<node id="so2">
+  <data key="d0">0.11139249801635742</data>
+  <data key="d1">gas</data>
+</node>
+<node id="no2">
+  <data key="d0">0.6487171649932861</data>
+  <data key="d1">gas</data>
+</node>
+<node id="cnt5">
+  <data key="d0">0.018535066395998</data>
+  <data key="d1">particle</data>
+</node>
+<node id="pm1">
+  <data key="d0">0.10336891561746597</data>
+  <data key="d1">particle</data>
+</node>
+<node id="cnt1">
+  <data key="d0">0.02492556907236576</data>
+  <data key="d1">particle</data>
+</node>
+<node id="dewpt">
+  <data key="d0">0.5496536493301392</data>
+  <data key="d1">climate</data>
+</node>
+<node id="tvoc">
+  <data key="d0">0.12733891606330872</data>
+  <data key="d1">gas</data>
+</node>
+<node id="pressure">
+  <data key="d0">0.6933984756469727</data>
+  <data key="d1">climate</data>
+</node>
+<node id="cnt10">
+  <data key="d0">0.013060989789664745</data>
+  <data key="d1">particle</data>
+</node>
+<node id="dCO2dt">
+  <data key="d0">0.5079171061515808</data>
+  <data key="d1">other</data>
+</node>
+<node id="sound_max">
+  <data key="d0">0.39656302332878113</data>
+  <data key="d1">composite</data>
+</node>
+<node id="health">
+  <data key="d0">0.8019466996192932</data>
+  <data key="d1">composite</data>
+</node>
+<node id="temperature_o2">
+  <data key="d0">0.448866605758667</data>
+  <data key="d1">climate</data>
+</node>
+<node id="cnt2_5">
+  <data key="d0">0.011707833968102932</data>
+  <data key="d1">particle</data>
+</node>
+<node id="o3">
+  <data key="d0">0.42679980397224426</data>
+  <data key="d1">gas</data>
+</node>
+<node id="humidity">
+  <data key="d0">0.45470234751701355</data>
+  <data key="d1">climate</data>
+</node>
+<node id="dHdt">
+  <data key="d0">0.46849894523620605</data>
+  <data key="d1">other</data>
+</node>
+<node id="humidity_abs">
+  <data key="d0">0.43963056802749634</data>
+  <data key="d1">climate</data>
+</node>
+<node id="sound">
+  <data key="d0">0.6222435235977173</data>
+  <data key="d1">composite</data>
+</node>
+<node id="pm2_5">
+  <data key="d0">0.06278624385595322</data>
+  <data key="d1">particle</data>
+</node>
+<node id="cnt0_3">
+  <data key="d0">0.15088027715682983</data>
+  <data key="d1">particle</data>
+</node>
+<edge source="TypPS" target="pm10">
+  <data key="d2">0.5053536891937256</data>
+</edge>
+<edge source="TypPS" target="cnt0_5">
+  <data key="d2">0.7045915722846985</data>
+</edge>
+<edge source="TypPS" target="pm1">
+  <data key="d2">0.5817925930023193</data>
+</edge>
+<edge source="TypPS" target="tvoc">
+  <data key="d2">0.5365056395530701</data>
+</edge>
+<edge source="TypPS" target="pm2_5">
+  <data key="d2">0.5069262981414795</data>
+</edge>
+<edge source="TypPS" target="cnt0_3">
+  <data key="d2">0.7086117267608643</data>
+</edge>
+<edge source="pm10" target="cnt0_5">
+  <data key="d2">0.9493750333786011</data>
+</edge>
+<edge source="pm10" target="cnt5">
+  <data key="d2">0.6463442444801331</data>
+</edge>
+<edge source="pm10" target="pm1">
+  <data key="d2">0.977563738822937</data>
+</edge>
+<edge source="pm10" target="cnt1">
+  <data key="d2">0.9767132997512817</data>
+</edge>
+<edge source="pm10" target="health">
+  <data key="d2">0.6792541742324829</data>
+</edge>
+<edge source="pm10" target="cnt2_5">
+  <data key="d2">0.8694891929626465</data>
+</edge>
+<edge source="pm10" target="pm2_5">
+  <data key="d2">0.9963911175727844</data>
+</edge>
+<edge source="pm10" target="cnt0_3">
+  <data key="d2">0.9469590187072754</data>
+</edge>
+<edge source="cnt0_5" target="cnt5">
+  <data key="d2">0.5539623498916626</data>
+</edge>
+<edge source="cnt0_5" target="pm1">
+  <data key="d2">0.9769359827041626</data>
+</edge>
+<edge source="cnt0_5" target="cnt1">
+  <data key="d2">0.8816013932228088</data>
+</edge>
+<edge source="cnt0_5" target="health">
+  <data key="d2">0.7056397199630737</data>
+</edge>
+<edge source="cnt0_5" target="cnt2_5">
+  <data key="d2">0.7281879186630249</data>
+</edge>
+<edge source="cnt0_5" target="pm2_5">
+  <data key="d2">0.9543761014938354</data>
+</edge>
+<edge source="cnt0_5" target="cnt0_3">
+  <data key="d2">0.9998882412910461</data>
+</edge>
+<edge source="temperature" target="dewpt">
+  <data key="d2">0.6243587732315063</data>
+</edge>
+<edge source="temperature" target="tvoc">
+  <data key="d2">0.6036544442176819</data>
+</edge>
+<edge source="temperature" target="temperature_o2">
+  <data key="d2">0.9991132616996765</data>
+</edge>
+<edge source="temperature" target="humidity_abs">
+  <data key="d2">0.6121021509170532</data>
+</edge>
+<edge source="temperature" target="sound">
+  <data key="d2">0.6127650141716003</data>
+</edge>
+<edge source="performance" target="co2">
+  <data key="d2">0.69218909740448</data>
+</edge>
+<edge source="no2" target="humidity">
+  <data key="d2">0.6036366820335388</data>
+</edge>
+<edge source="cnt5" target="pm1">
+  <data key="d2">0.5545922517776489</data>
+</edge>
+<edge source="cnt5" target="cnt1">
+  <data key="d2">0.635558545589447</data>
+</edge>
+<edge source="cnt5" target="cnt10">
+  <data key="d2">0.7569888830184937</data>
+</edge>
+<edge source="cnt5" target="cnt2_5">
+  <data key="d2">0.7868356108665466</data>
+</edge>
+<edge source="cnt5" target="pm2_5">
+  <data key="d2">0.5913532376289368</data>
+</edge>
+<edge source="cnt5" target="cnt0_3">
+  <data key="d2">0.5518138408660889</data>
+</edge>
+<edge source="pm1" target="cnt1">
+  <data key="d2">0.9197883605957031</data>
+</edge>
+<edge source="pm1" target="health">
+  <data key="d2">0.700474202632904</data>
+</edge>
+<edge source="pm1" target="cnt2_5">
+  <data key="d2">0.7581903338432312</data>
+</edge>
+<edge source="pm1" target="pm2_5">
+  <data key="d2">0.9859622716903687</data>
+</edge>
+<edge source="pm1" target="cnt0_3">
+  <data key="d2">0.9755008220672607</data>
+</edge>
+<edge source="cnt1" target="health">
+  <data key="d2">0.6324134469032288</data>
+</edge>
+<edge source="cnt1" target="cnt2_5">
+  <data key="d2">0.9122214317321777</data>
+</edge>
+<edge source="cnt1" target="pm2_5">
+  <data key="d2">0.9699845910072327</data>
+</edge>
+<edge source="cnt1" target="cnt0_3">
+  <data key="d2">0.8781450390815735</data>
+</edge>
+<edge source="dewpt" target="temperature_o2">
+  <data key="d2">0.6333114504814148</data>
+</edge>
+<edge source="dewpt" target="humidity">
+  <data key="d2">0.9250409603118896</data>
+</edge>
+<edge source="dewpt" target="humidity_abs">
+  <data key="d2">0.9932782649993896</data>
+</edge>
+<edge source="tvoc" target="health">
+  <data key="d2">0.6741313338279724</data>
+</edge>
+<edge source="tvoc" target="temperature_o2">
+  <data key="d2">0.6130473017692566</data>
+</edge>
+<edge source="cnt10" target="cnt2_5">
+  <data key="d2">0.5448233485221863</data>
+</edge>
+<edge source="sound_max" target="sound">
+  <data key="d2">0.654499351978302</data>
+</edge>
+<edge source="health" target="cnt2_5">
+  <data key="d2">0.5151457786560059</data>
+</edge>
+<edge source="health" target="pm2_5">
+  <data key="d2">0.6847952604293823</data>
+</edge>
+<edge source="health" target="cnt0_3">
+  <data key="d2">0.7053462266921997</data>
+</edge>
+<edge source="temperature_o2" target="humidity_abs">
+  <data key="d2">0.621030867099762</data>
+</edge>
+<edge source="temperature_o2" target="sound">
+  <data key="d2">0.6189391016960144</data>
+</edge>
+<edge source="cnt2_5" target="pm2_5">
+  <data key="d2">0.8367921113967896</data>
+</edge>
+<edge source="cnt2_5" target="cnt0_3">
+  <data key="d2">0.7243505120277405</data>
+</edge>
+<edge source="humidity" target="humidity_abs">
+  <data key="d2">0.9321147203445435</data>
+</edge>
+<edge source="pm2_5" target="cnt0_3">
+  <data key="d2">0.9520588517189026</data>
+</edge>
+</graph></graphml>
